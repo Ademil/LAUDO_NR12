@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeMach Inspection - Sistema de Inspeção NR 12</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Biblioteca jsPDF para exportação em PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--warning);
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .logo span {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+        
+        .user-info i {
+            font-size: 1.5rem;
+        }
+        
+        .app-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .main-content {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .nav-item {
+            margin-bottom: 10px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .progress-section {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+        
+        .progress-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .inspection-item {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .item-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pendente { background-color: #fff3cd; color: #856404; }
+        .status-conforme { background-color: #d4edda; color: #155724; }
+        .status-nao-conforme { background-color: #f8d7da; color: #721c24; }
+        
+        .item-description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .item-reference {
+            font-size: 0.85rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .summary-card {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .summary-label {
+            color: #666;
+        }
+        
+        .photo-upload {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-upload:hover {
+            border-color: var(--secondary);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .photo-item {
+            width: 120px;
+            height: 120px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #ddd;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+        
+        .delete-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(231, 76, 60, 0.8);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .report-container {
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+        }
+        
+        .report-logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .report-title {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .report-subtitle {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .report-section {
+            margin-bottom: 30px;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .report-table th, .report-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .report-table th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        .report-photos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .report-photo-item {
+            width: 180px;
+            text-align: center;
+        }
+        
+        .report-photo-item img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .report-photo-caption {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .signature-area {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .signature-line {
+            width: 300px;
+            border-bottom: 1px solid #333;
+            margin: 40px auto 10px;
+            text-align: center;
+            padding-top: 30px;
+        }
+        
+        .signature-text {
+            text-align: center;
+            color: #666;
+        }
+        
+        /* Estilo para impressão */
+        @media print {
+            header, .sidebar, .actions, .no-print {
+                display: none !important;
+            }
+            
+            .report-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .report-photo-item {
+                page-break-inside: avoid;
+            }
+            
+            body {
+                background-color: white;
+                color: black;
+            }
+            
+            .report-table th {
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .report-photo-item {
+                width: 150px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .report-photo-item {
+                width: 120px;
+            }
+            
+            .photo-item {
+                width: 100px;
+                height: 100px;
+            }
+        }
+        
+        /* Estilo para carregamento do PDF */
+        .pdf-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .pdf-loading i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .pdf-loading p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--secondary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-hard-hat"></i>
+                <div>
+                    <h1>SafeMach Inspection</h1>
+                    <span>Sistema de Inspeção NR 12 e ABNT NBR ISO 12100</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <div>
+                    <div>Eng. Safety Inspector</div>
+                    <div>CREA/SP 123.456-7</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3>Menu de Inspeção</h3>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" class="nav-link active" data-section="info-geral"><i class="fas fa-info-circle"></i> Informações Gerais</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="analise-risco"><i class="fas fa-exclamation-triangle"></i> Análise de Risco (ISO 12100)</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="protecoes"><i class="fas fa-shield-alt"></i> Proteções e Dispositivos</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="sistema-eletrico"><i class="fas fa-bolt"></i> Sistema Elétrico (NR-10)</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="sinalizacao"><i class="fas fa-sign"></i> Sinalização e Procedimentos</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="fotos"><i class="fas fa-camera"></i> Fotos da Inspeção</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="conclusao"><i class="fas fa-clipboard-check"></i> Conclusão e Laudo</a></li>
+            </ul>
+            
+            <div class="progress-section">
+                <div class="progress-title">
+                    <span>Progresso da Inspeção</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9rem;">
+                    <div><i class="fas fa-clock"></i> Última atualização: <span id="last-update">--/--/----</span></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background-color: #e8f4fc; border-radius: 8px;">
+                <h4><i class="fas fa-lightbulb"></i> Dica do Especialista</h4>
+                <p style="font-size: 0.9rem; margin-top: 10px;">Registre fotos detalhadas da máquina, pontos críticos e não conformidades para comprovação técnica no laudo.</p>
+            </div>
+        </div>
+        
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Seção Informações Gerais -->
+            <div id="info-geral" class="section">
+                <h2 class="section-title"><i class="fas fa-info-circle"></i> Informações Gerais da Inspeção</h2>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Empresa / Razão Social</label>
+                            <input type="text" class="form-control" id="empresa" placeholder="Nome da empresa">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">CNPJ</label>
+                            <input type="text" class="form-control" id="cnpj" placeholder="00.000.000/0000-00">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Máquina / Equipamento</label>
+                            <input type="text" class="form-control" id="maquina" placeholder="Ex: Prensas, Tornos, Injecao">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Nº de Série / Identificação</label>
+                            <input type="text" class="form-control" id="serial" placeholder="Número de série">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Fabricante / Modelo</label>
+                            <input type="text" class="form-control" id="fabricante" placeholder="Fabricante e modelo">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Localização na Empresa</label>
+                            <input type="text" class="form-control" id="localizacao" placeholder="Setor, linha, etc.">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">Inspetor Responsável</label>
+                            <input type="text" class="form-control" id="inspetor" placeholder="Nome do inspetor">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label class="form-label">CREA / Registro</label>
+                            <input type="text" class="form-control" id="crea" placeholder="Número de registro">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Data da Inspeção</label>
+                    <input type="date" class="form-control" id="data-inspecao">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Finalidade da Inspeção</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="finalidade" value="periodica" checked> Periódica
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="finalidade" value="modificacao"> Após Modificação
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="finalidade" value="acidente"> Após Acidente
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="finalidade" value="inicial"> Inspeção Inicial
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção Análise de Risco (ISO 12100) -->
+            <div id="analise-risco" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Análise de Riscos - ABNT NBR ISO 12100</h2>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Identificação de Perigos</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Identificação de todos os perigos associados à máquina: mecânicos, elétricos, térmicos, ruído, vibração, etc.</div>
+                    <div class="item-reference">Referência: ISO 12100 - Capítulo 4</div>
+                    <textarea class="form-control" placeholder="Descreva os perigos identificados..." rows="3"></textarea>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Avaliação e Estimativa de Riscos</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Estimativa da gravidade do dano e probabilidade de ocorrência para cada risco identificado.</div>
+                    <div class="item-reference">Referência: ISO 12100 - Capítulo 5</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Nível de Risco (Selecionar):</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="nivel-risco" value="baixo"> Baixo
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="nivel-risco" value="medio"> Médio
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="nivel-risco" value="alto"> Alto
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="nivel-risco" value="critico"> Crítico
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Redução de Riscos</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da aplicação da hierarquia de medidas de proteção: Eliminação, Proteções, Dispositivos de segurança, Informação.</div>
+                    <div class="item-reference">Referência: ISO 12100 - Capítulo 6</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Medidas de Proteção Aplicadas:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="eliminacao"> Eliminação do Perigo
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="protecoes"> Proteções Coletivas
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="dispositivos"> Dispositivos de Segurança
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="sinalizacao"> Sinalização e Avisos
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="epi"> EPI (como último recurso)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção Proteções e Dispositivos -->
+            <div id="protecoes" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-shield-alt"></i> Proteções e Dispositivos de Segurança (NR 12)</h2>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Proteções Fixas</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da existência, robustez e fixação adequada de capas, carenagens, grades e outras proteções fixas.</div>
+                    <div class="item-reference">Referência: NR 12 - Itens 12.20 a 12.25</div>
+                    <textarea class="form-control" placeholder="Observações sobre as proteções fixas..." rows="2"></textarea>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Proteções Móveis com Intertravamento</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação do funcionamento do sistema de intertravamento que impede o acesso à zona de perigo com a máquina energizada.</div>
+                    <div class="item-reference">Referência: NR 12 - Item 12.28</div>
+                    <textarea class="form-control" placeholder="Observações sobre o sistema de intertravamento..." rows="2"></textarea>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Dispositivos de Segurança (Cortinas de Luz, Tapetes Sensíveis, etc.)</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação do funcionamento correto dos dispositivos de segurança, incluindo resposta, alcance e posicionamento.</div>
+                    <div class="item-reference">Referência: NR 12 - Itens 12.30 a 12.38</div>
+                    <textarea class="form-control" placeholder="Observações sobre dispositivos de segurança..." rows="2"></textarea>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Sistema de Parada de Emergência</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da existência, acessibilidade, identificação e funcionamento dos dispositivos de parada de emergência.</div>
+                    <div class="item-reference">Referência: NR 12 - Item 12.65</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Tipo de Dispositivo de Parada:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="botoeira-fungo"> Botoeira de emergência (tipo fungo)
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="cabo-tracao"> Cabo de tração
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="outro"> Outro (especificar)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção Sistema Elétrico -->
+            <div id="sistema-eletrico" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-bolt"></i> Sistema Elétrico (Conformidade NR-10)</h2>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Aterramento e Proteção contra Contato Direto/Indireto</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação do sistema de aterramento, continuidade e proteção contra choques elétricos.</div>
+                    <div class="item-reference">Referência: NR-10 - Itens 10.2.9 e 10.5</div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Proteção de Circuitos (Disjuntores, Fusíveis)</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da existência e adequação dos dispositivos de proteção de circuitos.</div>
+                    <div class="item-reference">Referência: NR-10 - Item 10.2.8</div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Identificação de Fios e Cabos</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da correta identificação dos condutores (fase, neutro, terra) conforme normas.</div>
+                    <div class="item-reference">Referência: NR-10 - Item 10.2.9.4</div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Quadros e Painéis Elétricos</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da organização, identificação, acesso restrito e proteção dos quadros elétricos.</div>
+                    <div class="item-reference">Referência: NR-10 - Item 10.2.9.5</div>
+                </div>
+            </div>
+            
+            <!-- Seção Sinalização e Procedimentos -->
+            <div id="sinalizacao" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-sign"></i> Sinalização, Procedimentos e Treinamento</h2>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Sinalização de Segurança</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da existência de placas de advertência, alerta, proibição e obrigação conforme o risco.</div>
+                    <div class="item-reference">Referência: NR 12 - Item 12.80</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Tipos de Sinalização Verificadas:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="perigo"> Perigo (vermelho/amarelo)
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="advertencia"> Advertência (amarelo)
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="obrigacao"> Obrigação (azul)
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" value="proibicao"> Proibição (vermelho)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Procedimentos de Operação e Manutenção</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da existência e adequação dos procedimentos escritos de operação segura e manutenção.</div>
+                    <div class="item-reference">Referência: NR 12 - Item 12.115</div>
+                </div>
+                
+                <div class="inspection-item">
+                    <div class="item-header">
+                        <div class="item-title">Treinamento dos Operadores</div>
+                        <select class="status-select form-control" style="width: auto;">
+                            <option value="pendente">Pendente</option>
+                            <option value="conforme">Conforme</option>
+                            <option value="nao-conforme">Não Conforme</option>
+                        </select>
+                    </div>
+                    <div class="item-description">Verificação da capacitação dos operadores conforme Anexo II da NR 12 (reciclagem anual).</div>
+                    <div class="item-reference">Referência: NR 12 - Anexo II</div>
+                    
+                    <div style="margin-top: 15px;">
+                        <label class="form-label">Documentação de Treinamento:</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="treinamento" value="conforme"> Conforme (com registro)
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="treinamento" value="parcial"> Parcialmente conforme
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="treinamento" value="nao-conforme"> Não conforme
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Observações / Recomendações Gerais</label>
+                    <textarea class="form-control" id="observacoes-gerais" placeholder="Insira aqui observações gerais, recomendações e não conformidades críticas..." rows="5"></textarea>
+                </div>
+            </div>
+            
+            <!-- Nova Seção: Fotos da Inspeção -->
+            <div id="fotos" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-camera"></i> Registro Fotográfico da Inspeção</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Importância do Registro Fotográfico</label>
+                    <div style="background-color: #e8f4fc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p>Como especialista em segurança, recomendo registrar fotos de:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Vista geral da máquina</li>
+                            <li>Proteções e dispositivos de segurança</li>
+                            <li>Não conformidades identificadas</li>
+                            <li>Sistema elétrico e painéis</li>
+                            <li>Placas de sinalização</li>
+                        </ul>
+                        <p style="margin-top: 10px; font-size: 0.9rem;"><strong>Dica:</strong> As fotos são essenciais para comprovação técnica no laudo.</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Fotos da Máquina e Inspeção</label>
+                    <div class="photo-upload" onclick="document.getElementById('photo-input').click()">
+                        <i class="fas fa-camera fa-2x" style="color: #666; margin-bottom: 10px;"></i>
+                        <p>Clique para adicionar fotos da máquina e inspeção</p>
+                        <p style="font-size: 0.9rem; color: #999;">Formatos: JPG, PNG (Máx. 5MB cada)</p>
+                        <p style="font-size: 0.8rem; color: var(--secondary); margin-top: 5px;"><i class="fas fa-info-circle"></i> As fotos serão incluídas no laudo técnico</p>
+                    </div>
+                    <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="form-label">Legenda para as Fotos (opcional)</label>
+                        <input type="text" class="form-control" id="photo-caption-input" placeholder="Ex: Vista frontal da máquina, Proteção removida, etc.">
+                        <button class="btn btn-primary" id="btn-add-caption" style="margin-top: 10px; padding: 8px 15px;">
+                            <i class="fas fa-plus"></i> Aplicar legenda à próxima foto
+                        </button>
+                    </div>
+                    
+                    <div class="photo-preview" id="photo-preview"></div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 6px; font-size: 0.9rem;">
+                        <p><strong><i class="fas fa-exclamation-triangle"></i> Importante:</strong> Todas as fotos adicionadas aqui serão automaticamente incluídas no laudo técnico final como comprovação visual da inspeção.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção Conclusão e Laudo -->
+            <div id="conclusao" class="section hidden">
+                <h2 class="section-title"><i class="fas fa-clipboard-check"></i> Conclusão e Emissão de Laudo</h2>
+                
+                <div class="summary-card">
+                    <div>
+                        <div class="summary-label">Itens Conformes</div>
+                        <div class="summary-value" id="conforme-count">0</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Itens Não Conformes</div>
+                        <div class="summary-value" id="nao-conforme-count">0</div>
+                    </div>
+                    <div>
+                        <div class="summary-label">Fotos Registradas</div>
+                        <div class="summary-value" id="foto-count">0</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Conclusão Técnica</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="conclusao" id="conclusao-aprovada" value="aprovada"> Aprovada (Máquina atende integralmente à NR 12)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="conclusao" id="conclusao-restricoes" value="restricoes"> Aprovada com Restrições (Adequações necessárias dentro de prazos)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="conclusao" id="conclusao-reprovada" value="reprovada"> Reprovada (Riscos graves e iminentes - Interdição necessária)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Prazo para Adequações (se aplicável)</label>
+                    <input type="text" class="form-control" id="prazo-adequacoes" placeholder="Ex: 30 dias para correção dos itens não conformes">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Recomendações Finais</label>
+                    <textarea class="form-control" id="recomendacoes-finais" placeholder="Descreva as recomendações finais, prioridades e ações necessárias..." rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Assinatura do Responsável Técnico</label>
+                    <div class="signature-area">
+                        <div class="signature-line"></div>
+                        <div class="signature-text">Eng. Responsável / CREA</div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button class="btn btn-secondary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Inspeção</button>
+                    <button class="btn btn-success" id="btn-gerar-laudo"><i class="fas fa-file-pdf"></i> Visualizar Laudo</button>
+                    <button class="btn btn-primary" id="btn-finalizar"><i class="fas fa-flag-checkered"></i> Finalizar Inspeção</button>
+                </div>
+            </div>
+            
+            <!-- Navegação entre seções -->
+            <div class="actions" id="navigation-buttons">
+                <button class="btn btn-secondary" id="btn-anterior"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <button class="btn btn-primary" id="btn-proximo">Próximo <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para visualização do laudo -->
+    <div id="report-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto; padding: 20px;">
+        <div class="report-container" id="report-content">
+            <!-- Conteúdo do laudo será inserido aqui via JavaScript -->
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-danger" id="btn-export-pdf"><i class="fas fa-file-pdf"></i> Exportar para PDF</button>
+            <button class="btn btn-warning" id="btn-print"><i class="fas fa-print"></i> Imprimir Laudo</button>
+            <button class="btn btn-secondary" id="btn-close-report"><i class="fas fa-times"></i> Fechar</button>
+        </div>
+    </div>
+    
+    <!-- Overlay de carregamento para PDF -->
+    <div id="pdf-loading" class="pdf-loading hidden">
+        <div class="spinner"></div>
+        <p>Gerando PDF...</p>
+        <p style="font-size: 0.9rem; opacity: 0.8;">Isso pode levar alguns segundos</p>
+    </div>
+    
+    <script>
+        // Inicializar jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        // Dados da inspeção
+        let inspectionData = {
+            sections: ['info-geral', 'analise-risco', 'protecoes', 'sistema-eletrico', 'sinalizacao', 'fotos', 'conclusao'],
+            currentSectionIndex: 0,
+            progress: 0,
+            lastUpdate: new Date().toLocaleDateString('pt-BR'),
+            photos: [],
+            nextPhotoCaption: ''
+        };
+        
+        // Inicialização da aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar data atual
+            document.getElementById('data-inspecao').valueAsDate = new Date();
+            document.getElementById('last-update').textContent = inspectionData.lastUpdate;
+            
+            // Navegação entre seções
+            setupNavigation();
+            
+            // Configurar eventos dos itens de inspeção
+            setupInspectionItems();
+            
+            // Configurar eventos dos botões principais
+            setupMainButtons();
+            
+            // Configurar upload de fotos
+            setupPhotoUpload();
+            
+            // Configurar legenda de fotos
+            setupPhotoCaption();
+            
+            // Atualizar progresso inicial
+            updateProgress();
+        });
+        
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+                    showSection(targetSection);
+                    
+                    // Atualizar navegação ativa
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Botões anterior/próximo
+            document.getElementById('btn-anterior').addEventListener('click', function() {
+                if (inspectionData.currentSectionIndex > 0) {
+                    inspectionData.currentSectionIndex--;
+                    const prevSection = inspectionData.sections[inspectionData.currentSectionIndex];
+                    showSection(prevSection);
+                    updateNavActive();
+                }
+            });
+            
+            document.getElementById('btn-proximo').addEventListener('click', function() {
+                if (inspectionData.currentSectionIndex < inspectionData.sections.length - 1) {
+                    inspectionData.currentSectionIndex++;
+                    const nextSection = inspectionData.sections[inspectionData.currentSectionIndex];
+                    showSection(nextSection);
+                    updateNavActive();
+                }
+            });
+        }
+        
+        function showSection(sectionId) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Mostrar a seção selecionada
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Atualizar índice atual
+            inspectionData.currentSectionIndex = inspectionData.sections.indexOf(sectionId);
+            
+            // Atualizar progresso
+            updateProgress();
+            
+            // Mostrar/ocultar botões de navegação conforme a seção
+            const navButtons = document.getElementById('navigation-buttons');
+            if (sectionId === 'conclusao') {
+                navButtons.classList.add('hidden');
+            } else {
+                navButtons.classList.remove('hidden');
+            }
+        }
+        
+        function updateNavActive() {
+            const currentSection = inspectionData.sections[inspectionData.currentSectionIndex];
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        function setupInspectionItems() {
+            // Configurar eventos para os selects de status
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('status-select')) {
+                    updateProgress();
+                    updateSummaryCounts();
+                }
+            });
+        }
+        
+        function updateProgress() {
+            // Calcular progresso baseado em seções completadas
+            let completedSections = 0;
+            
+            inspectionData.sections.forEach((sectionId, index) => {
+                if (index <= inspectionData.currentSectionIndex) {
+                    completedSections++;
+                }
+            });
+            
+            inspectionData.progress = Math.round((completedSections / inspectionData.sections.length) * 100);
+            
+            // Atualizar barra de progresso
+            document.getElementById('progress-fill').style.width = inspectionData.progress + '%';
+            document.getElementById('progress-percentage').textContent = inspectionData.progress + '%';
+        }
+        
+        function updateSummaryCounts() {
+            // Contar itens por status
+            const statusSelects = document.querySelectorAll('.status-select');
+            let conformeCount = 0;
+            let naoConformeCount = 0;
+            
+            statusSelects.forEach(select => {
+                const value = select.value;
+                if (value === 'conforme') conformeCount++;
+                else if (value === 'nao-conforme') naoConformeCount++;
+            });
+            
+            // Atualizar contadores na seção de conclusão
+            document.getElementById('conforme-count').textContent = conformeCount;
+            document.getElementById('nao-conforme-count').textContent = naoConformeCount;
+            document.getElementById('foto-count').textContent = inspectionData.photos.length;
+        }
+        
+        function setupPhotoUpload() {
+            const photoInput = document.getElementById('photo-input');
+            const photoPreview = document.getElementById('photo-preview');
+            
+            photoInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                
+                files.forEach(file => {
+                    if (!file.type.match('image.*')) {
+                        alert('Por favor, selecione apenas arquivos de imagem (JPG, PNG).');
+                        return;
+                    }
+                    
+                    // Verificar tamanho do arquivo (máximo 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`A imagem "${file.name}" é muito grande. Tamanho máximo: 5MB.`);
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const photoItem = document.createElement('div');
+                        photoItem.className = 'photo-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        
+                        // Adicionar legenda se disponível
+                        let caption = inspectionData.nextPhotoCaption || `Foto ${inspectionData.photos.length + 1}`;
+                        
+                        const captionDiv = document.createElement('div');
+                        captionDiv.className = 'photo-caption';
+                        captionDiv.textContent = caption.length > 20 ? caption.substring(0, 20) + '...' : caption;
+                        captionDiv.title = caption;
+                        
+                        const deleteBtn = document.createElement('div');
+                        deleteBtn.className = 'delete-photo';
+                        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        deleteBtn.addEventListener('click', function() {
+                            // Remover foto do array
+                            const index = inspectionData.photos.findIndex(p => p.id === photoId);
+                            if (index !== -1) {
+                                inspectionData.photos.splice(index, 1);
+                            }
+                            photoItem.remove();
+                            updateSummaryCounts(); // Atualizar contador de fotos
+                        });
+                        
+                        photoItem.appendChild(img);
+                        photoItem.appendChild(captionDiv);
+                        photoItem.appendChild(deleteBtn);
+                        photoPreview.appendChild(photoItem);
+                        
+                        // Gerar ID único para a foto
+                        const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        
+                        // Salvar no array de fotos
+                        inspectionData.photos.push({
+                            id: photoId,
+                            name: file.name,
+                            caption: caption,
+                            data: e.target.result
+                        });
+                        
+                        // Limpar legenda após uso
+                        inspectionData.nextPhotoCaption = '';
+                        document.getElementById('photo-caption-input').value = '';
+                        
+                        // Atualizar contador de fotos
+                        updateSummaryCounts();
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+                
+                // Limpar input para permitir nova seleção
+                photoInput.value = '';
+            });
+        }
+        
+        function setupPhotoCaption() {
+            document.getElementById('btn-add-caption').addEventListener('click', function() {
+                const captionInput = document.getElementById('photo-caption-input');
+                if (captionInput.value.trim()) {
+                    inspectionData.nextPhotoCaption = captionInput.value.trim();
+                    alert(`Legenda definida: "${inspectionData.nextPhotoCaption}". A próxima foto adicionada terá esta legenda.`);
+                } else {
+                    alert('Por favor, digite uma legenda antes de aplicar.');
+                }
+            });
+        }
+        
+        function setupMainButtons() {
+            // Botão salvar
+            document.getElementById('btn-salvar').addEventListener('click', function() {
+                saveInspection();
+                alert('Inspeção salva com sucesso!');
+            });
+            
+            // Botão gerar laudo
+            document.getElementById('btn-gerar-laudo').addEventListener('click', function() {
+                generateReport();
+            });
+            
+            // Botão finalizar
+            document.getElementById('btn-finalizar').addEventListener('click', function() {
+                if (validateInspection()) {
+                    saveInspection();
+                    generateReport();
+                } else {
+                    alert('Por favor, complete todos os campos obrigatórios antes de finalizar.');
+                }
+            });
+            
+            // Botão imprimir no modal
+            document.getElementById('btn-print').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Botão exportar PDF no modal
+            document.getElementById('btn-export-pdf').addEventListener('click', function() {
+                exportToPDF();
+            });
+            
+            // Botão fechar modal
+            document.getElementById('btn-close-report').addEventListener('click', function() {
+                document.getElementById('report-modal').classList.add('hidden');
+            });
+        }
+        
+        function saveInspection() {
+            // Coletar dados do formulário
+            const data = {
+                empresa: document.getElementById('empresa').value,
+                cnpj: document.getElementById('cnpj').value,
+                maquina: document.getElementById('maquina').value,
+                serial: document.getElementById('serial').value,
+                fabricante: document.getElementById('fabricante').value,
+                localizacao: document.getElementById('localizacao').value,
+                inspetor: document.getElementById('inspetor').value,
+                crea: document.getElementById('crea').value,
+                dataInspecao: document.getElementById('data-inspecao').value,
+                finalidade: document.querySelector('input[name="finalidade"]:checked')?.value,
+                conclusao: document.querySelector('input[name="conclusao"]:checked')?.value,
+                observacoes: document.getElementById('observacoes-gerais').value,
+                recomendacoes: document.getElementById('recomendacoes-finais').value,
+                prazo: document.getElementById('prazo-adequacoes').value,
+                lastUpdate: new Date().toISOString(),
+                photos: inspectionData.photos.length,
+                photoData: inspectionData.photos
+            };
+            
+            // Salvar no localStorage
+            localStorage.setItem('nr12_inspection_data', JSON.stringify(data));
+            
+            // Atualizar data da última atualização
+            const now = new Date();
+            inspectionData.lastUpdate = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('last-update').textContent = inspectionData.lastUpdate;
+        }
+        
+        function validateInspection() {
+            // Validar campos obrigatórios
+            const requiredFields = [
+                'empresa', 'maquina', 'inspetor', 'crea', 'data-inspecao'
+            ];
+            
+            for (const fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    // Mostrar a seção com o campo vazio
+                    showSection(field.closest('.section').id);
+                    field.focus();
+                    return false;
+                }
+            }
+            
+            // Verificar se uma conclusão foi selecionada
+            const conclusaoSelecionada = document.querySelector('input[name="conclusao"]:checked');
+            if (!conclusaoSelecionada) {
+                showSection('conclusao');
+                alert('Por favor, selecione uma conclusão técnica.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function generateReport() {
+            // Coletar dados para o relatório
+            const empresa = document.getElementById('empresa').value || 'NÃO INFORMADO';
+            const maquina = document.getElementById('maquina').value || 'NÃO INFORMADO';
+            const serial = document.getElementById('serial').value || 'NÃO INFORMADO';
+            const inspetor = document.getElementById('inspetor').value || 'NÃO INFORMADO';
+            const crea = document.getElementById('crea').value || 'NÃO INFORMADO';
+            const dataInspecao = document.getElementById('data-inspecao').value || new Date().toLocaleDateString('pt-BR');
+            
+            // Contar itens por status
+            const statusSelects = document.querySelectorAll('.status-select');
+            let conformeCount = 0;
+            let naoConformeCount = 0;
+            
+            statusSelects.forEach(select => {
+                const value = select.value;
+                if (value === 'conforme') conformeCount++;
+                else if (value === 'nao-conforme') naoConformeCount++;
+            });
+            
+            // Determinar conclusão
+            let conclusaoTexto = '';
+            const conclusaoSelecionada = document.querySelector('input[name="conclusao"]:checked');
+            if (conclusaoSelecionada) {
+                if (conclusaoSelecionada.value === 'aprovada') {
+                    conclusaoTexto = 'APROVADA - A máquina atende integralmente aos requisitos da NR 12 e normas técnicas aplicáveis.';
+                } else if (conclusaoSelecionada.value === 'restricoes') {
+                    conclusaoTexto = 'APROVADA COM RESTRIÇÕES - São necessárias adequações dentro dos prazos estabelecidos.';
+                } else if (conclusaoSelecionada.value === 'reprovada') {
+                    conclusaoTexto = 'REPROVADA - A máquina apresenta riscos graves e iminentes, necessitando de interdição imediata até a correção das não conformidades.';
+                }
+            }
+            
+            // Gerar conteúdo do relatório com fotos
+            const reportContent = document.getElementById('report-content');
+            
+            // Criar seção de fotos se houver fotos
+            let fotosSection = '';
+            if (inspectionData.photos.length > 0) {
+                fotosSection = `
+                    <div class="report-section">
+                        <h3>4. REGISTRO FOTOGRÁFICO DA INSPEÇÃO</h3>
+                        <p>Fotos registradas durante a inspeção da máquina/equipamento:</p>
+                        <div class="report-photos">
+                `;
+                
+                inspectionData.photos.forEach((photo, index) => {
+                    fotosSection += `
+                        <div class="report-photo-item">
+                            <img src="${photo.data}" alt="${photo.caption}">
+                            <div class="report-photo-caption">${index + 1}. ${photo.caption}</div>
+                        </div>
+                    `;
+                });
+                
+                fotosSection += `
+                        </div>
+                        <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">Total de fotos: ${inspectionData.photos.length}</p>
+                    </div>
+                `;
+            } else {
+                fotosSection = `
+                    <div class="report-section">
+                        <h3>4. REGISTRO FOTOGRÁFICO</h3>
+                        <p>Nenhuma foto foi registrada durante esta inspeção.</p>
+                    </div>
+                `;
+            }
+            
+            reportContent.innerHTML = `
+                <div class="report-header">
+                    <div class="report-logo"><i class="fas fa-hard-hat"></i></div>
+                    <h1 class="report-title">LAUDO TÉCNICO DE INSPEÇÃO NR 12</h1>
+                    <div class="report-subtitle">Segurança no Trabalho em Máquinas e Equipamentos</div>
+                    <div class="report-subtitle">ABNT NBR ISO 12100 - Segurança de Máquinas</div>
+                    <div class="report-subtitle" style="font-size: 0.9rem; margin-top: 10px;">Documento gerado automaticamente pelo Sistema SafeMach Inspection</div>
+                </div>
+                
+                <div class="report-section">
+                    <h3>1. IDENTIFICAÇÃO</h3>
+                    <table class="report-table">
+                        <tr>
+                            <th width="30%">Empresa / Razão Social</th>
+                            <td>${empresa}</td>
+                        </tr>
+                        <tr>
+                            <th>Máquina / Equipamento</th>
+                            <td>${maquina}</td>
+                        </tr>
+                        <tr>
+                            <th>Nº de Série / Identificação</th>
+                            <td>${serial}</td>
+                        </tr>
+                        <tr>
+                            <th>Fabricante / Modelo</th>
+                            <td>${document.getElementById('fabricante').value || 'NÃO INFORMADO'}</td>
+                        </tr>
+                        <tr>
+                            <th>Localização na Empresa</th>
+                            <td>${document.getElementById('localizacao').value || 'NÃO INFORMADO'}</td>
+                        </tr>
+                        <tr>
+                            <th>Inspetor Responsável</th>
+                            <td>${inspetor}</td>
+                        </tr>
+                        <tr>
+                            <th>CREA / Registro</th>
+                            <td>${crea}</td>
+                        </tr>
+                        <tr>
+                            <th>Data da Inspeção</th>
+                            <td>${dataInspecao}</td>
+                        </tr>
+                        <tr>
+                            <th>Finalidade da Inspeção</th>
+                            <td>${document.querySelector('input[name="finalidade"]:checked')?.value || 'NÃO INFORMADO'}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="report-section">
+                    <h3>2. RESUMO DA INSPEÇÃO</h3>
+                    <table class="report-table">
+                        <tr>
+                            <th width="40%">Itens Conformes</th>
+                            <td>${conformeCount}</td>
+                        </tr>
+                        <tr>
+                            <th>Itens Não Conformes</th>
+                            <td>${naoConformeCount}</td>
+                        </tr>
+                        <tr>
+                            <th>Total de Itens Avaliados</th>
+                            <td>${statusSelects.length}</td>
+                        </tr>
+                        <tr>
+                            <th>Fotos Registradas</th>
+                            <td>${inspectionData.photos.length}</td>
+                        </tr>
+                        <tr>
+                            <th>Percentual de Conformidade</th>
+                            <td>${statusSelects.length > 0 ? Math.round((conformeCount / statusSelects.length) * 100) : 0}%</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="report-section">
+                    <h3>3. OBSERVAÇÕES E RECOMENDAÇÕES</h3>
+                    <p><strong>Observações Gerais:</strong></p>
+                    <p>${document.getElementById('observacoes-gerais').value || 'Nenhuma observação registrada.'}</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Recomendações Finais:</strong></p>
+                    <p>${document.getElementById('recomendacoes-finais').value || 'Nenhuma recomendação registrada.'}</p>
+                    
+                    ${document.getElementById('prazo-adequacoes').value ? `
+                    <p style="margin-top: 15px;"><strong>Prazo para Adequações:</strong></p>
+                    <p>${document.getElementById('prazo-adequacoes').value}</p>
+                    ` : ''}
+                </div>
+                
+                ${fotosSection}
+                
+                <div class="report-section">
+                    <h3>5. CONCLUSÃO TÉCNICA</h3>
+                    <div style="padding: 15px; border: 2px solid ${conclusaoSelecionada?.value === 'aprovada' ? '#27ae60' : conclusaoSelecionada?.value === 'restricoes' ? '#f39c12' : '#e74c3c'}; border-radius: 8px; background-color: ${conclusaoSelecionada?.value === 'aprovada' ? '#d4edda' : conclusaoSelecionada?.value === 'restricoes' ? '#fff3cd' : '#f8d7da'};">
+                        <p style="font-weight: 600; font-size: 1.2rem; margin: 0; text-align: center;">${conclusaoTexto}</p>
+                    </div>
+                    
+                    <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+                        <strong>Observação do Engenheiro Responsável:</strong><br>
+                        Este laudo foi emitido com base na inspeção realizada in loco, seguindo os critérios estabelecidos pela NR 12 (Portaria MTE n.º 3.214/1978) e ABNT NBR ISO 12100:2013.
+                    </p>
+                </div>
+                
+                <div class="report-section">
+                    <h3>6. ASSINATURAS</h3>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px; flex-wrap: wrap;">
+                        <div style="text-align: center; margin-bottom: 30px; flex: 1; min-width: 250px;">
+                            <div class="signature-line" style="width: 250px;"></div>
+                            <div class="signature-text">Inspetor Responsável</div>
+                            <div style="margin-top: 10px; font-weight: 600;">${inspetor}</div>
+                            <div>CREA: ${crea}</div>
+                            <div style="margin-top: 10px; font-size: 0.9rem;">Engenheiro de Segurança do Trabalho</div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-bottom: 30px; flex: 1; min-width: 250px;">
+                            <div class="signature-line" style="width: 250px;"></div>
+                            <div class="signature-text">Representante da Empresa</div>
+                            <div style="margin-top: 10px; font-weight: 600;">__________________________</div>
+                            <div>Nome e Cargo</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <p style="font-size: 0.9rem; color: #666;">
+                            <strong>Documento válido por 12 meses</strong><br>
+                            Próxima inspeção recomendada: ${getNextInspectionDate()}<br>
+                            Laudo emitido em: ${new Date().toLocaleDateString('pt-BR')}
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar modal do relatório
+            document.getElementById('report-modal').classList.remove('hidden');
+            
+            // Rolar para o topo do modal
+            document.getElementById('report-modal').scrollTop = 0;
+        }
+        
+        function getNextInspectionDate() {
+            const today = new Date();
+            const nextDate = new Date(today);
+            nextDate.setMonth(today.getMonth() + 12);
+            return nextDate.toLocaleDateString('pt-BR');
+        }
+        
+        function exportToPDF() {
+            // Mostrar overlay de carregamento
+            document.getElementById('pdf-loading').classList.remove('hidden');
+            
+            // Elemento a ser exportado
+            const element = document.getElementById('report-content');
+            
+            // Configurações para o html2canvas
+            const options = {
+                scale: 2, // Maior resolução
+                useCORS: true, // Para permitir imagens de outras origens
+                logging: false, // Desativar logs
+                backgroundColor: '#ffffff' // Fundo branco
+            };
+            
+            // Converter HTML para canvas
+            html2canvas(element, options).then(canvas => {
+                // Criar PDF
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; // Largura da página A4 em mm
+                const pageHeight = 297; // Altura da página A4 em mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                let pageNumber = 1;
+                
+                // Adicionar primeira página
+                pdf.addImage(canvas, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Adicionar páginas adicionais se necessário
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(canvas, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    pageNumber++;
+                }
+                
+                // Gerar nome do arquivo
+                const empresa = document.getElementById('empresa').value || 'empresa';
+                const maquina = document.getElementById('maquina').value || 'maquina';
+                const data = new Date().toISOString().split('T')[0];
+                const filename = `Laudo_NR12_${empresa.replace(/\s+/g, '_')}_${maquina.replace(/\s+/g, '_')}_${data}.pdf`;
+                
+                // Salvar PDF
+                pdf.save(filename);
+                
+                // Esconder overlay de carregamento
+                document.getElementById('pdf-loading').classList.add('hidden');
+                
+                // Mostrar mensagem de sucesso
+                alert(`PDF gerado com sucesso! ${pageNumber} página(s) exportada(s).`);
+                
+            }).catch(error => {
+                console.error('Erro ao gerar PDF:', error);
+                document.getElementById('pdf-loading').classList.add('hidden');
+                alert('Erro ao gerar PDF. Por favor, tente novamente ou use a função de impressão.');
+            });
+        }
+        
+        // Inicializar com a primeira seção visível
+        showSection('info-geral');
+    </script>
+</body>
+</html>
